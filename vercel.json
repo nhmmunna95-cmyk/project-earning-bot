@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "bot/main.py",
+      "src": "bot/bot/main.py",
       "use": "@vercel/python"
     },
     {
@@ -12,12 +12,8 @@
   ],
   "routes": [
     {
-      "src": "/api/bot",
-      "dest": "bot/main.py"
-    },
-    {
       "src": "/(.*)",
-      "dest": "web/$1"
+      "dest": "bot/bot/main.py"
     }
   ]
 }
