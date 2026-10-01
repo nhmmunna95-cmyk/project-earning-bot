@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+<title>Project Earning</title>
+<style>
+body{margin:0;background:#0f0f0f;color:#fff;font-family:Arial;padding:15px}
+.card{background:#1e1e1e;padding:16px;border-radius:15px;margin-bottom:12px;border:1px solid #333}
+.btn{width:100%;padding:13px;background:linear-gradient(90deg,#00ff88,#00ccff);border:none;border-radius:10px;font-weight:bold;color:#000;font-size:16px;margin-top:8px}
+.task{display:flex;justify-content:space-between;align-items:center;background:#2a2a2a;padding:12px;border-radius:10px;margin:8px 0}
+.task b{color:#00ff88}
+input,select{width:94%;padding:12px;margin:6px 0;border-radius:10px;border:none;background:#333;color:#fff;box-sizing:border-box}
+</style>
+</head>
+<body>
+
+<div class="card">
+<h2>💰 Project Earning</h2>
+<p>💵 Balance: <b id="bal">0</b>৳</p>
+<p>👥 Refs: <b id="refs">0</b> | 🌍 Total: <b id="total">0</b></p>
+<p style="font-size:11px;background:#000;padding:8px;border-radius:8px;word-break:break-all" id="reflink"></p>
+</div>
+
+<div class="card">
+<h3>📋 Tasks - 70৳</h3>
+<div class="task"><span>📢 Telegram Channel</span><b>20৳</b></div>
+<div class="task"><span>👍 Facebook Page</span><b>20৳</b></div>
+<div class="task"><span>▶️ YouTube Subscribe</span><b>15৳</b></div>
+<div class="task"><span>📺 Adsgram Ad</span><b>15৳</b> <button onclick="showAd()" style="background:#00ff88;border:none;padding:6px 12px;border-radius:8px;font-weight:bold">Watch</button></div>
+</div>
+
+<div class="card">
+<h3>💸 Withdraw - Min 230৳</h3>
+<select id="method">
+<option>Bkash</option>
+<option>Nagad</option>
+<option>Rocket</option>
+</select>
+<input id="wallet" placeholder="Bkash/Nagad/Rocket Number">
+<input id="amount" type="number" placeholder="Min 230">
+<button class="btn" onclick="doWithdraw()">Withdraw</button>
+</div>
+
+<script>
+const tg = window.Telegram.WebApp; tg.expand();
+const uid = tg.initDataUnsafe?.user?.id || "8630373069";
+document.getElementById('reflink').innerText = `Ref Link: https://t.me/YourBot?start=${uid}`;
+
+// 1. Adsgram Init - এখানে তোমার Block ID বসাবে adsgram.ai থেকে
+const AdController = window.Adsgram.init({ blockId: "YOUR_BLOCK_ID_HERE" });
+
+async function showAd(){
+  try{
+    const result = await AdController.show();
+    // Ad দেখা শেষ হলে 15 টাকা Add হবে
+    alert('✅ Ad দেখা শেষ! 15৳ পেয়েছো!');
+    // চাইলে এখানে API call দিয়ে Balance Add করবে
+    // fetch('/api/add-balance'...)
+  }catch(e){
+    alert('❌ Ad দেখা হয়নি, আবার চেষ্টা করো');
+  }
+}
+
+async function doWithdraw(){
+ let a=document.getElementById('amount').value;
+ let m=document.getElementById('method').value;
+ let w=document.getElementById('wallet').value;
+ if(a<230) return alert("Min 230৳");
+ if(!w) return alert("Wallet দাও");
+ let res=await fetch('https://project-earning-bot.vercel.app/api/withdraw',{
+   method:'POST',headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({user_id:String(uid),amount:a,method:m,wallet:w})
+ });
+ let d=await res.json();
+ alert(d.ok?"✅ Admin এর কাছে গেছে!":"❌ "+d.msg);
+}
+</script>
+</body>
+  </html>
