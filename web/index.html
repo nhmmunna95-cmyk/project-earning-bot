@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://ad.gigapub.tech/js/gigapub.js"></script>
+<title>Project Earning - Final Fixed</title>
+<style>
+body{margin:0;background:#f5f5f7;font-family:Arial;color:#222;padding-bottom:80px}
+.header{background:linear-gradient(135deg,#8a2be2,#ff6a00);padding:20px 15px 25px;color:#fff;border-radius:0 0 25px 25px;text-align:center}
+.card{background:#fff;padding:16px;border-radius:15px;margin:12px;box-shadow:0 2px 10px #0001}
+.btn{width:100%;padding:14px;background:#8a2be2;border:none;border-radius:12px;color:#fff;font-weight:bold;font-size:16px}
+.btn:disabled{background:#ccc}
+.task{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #eee}
+.task button{padding:8px 14px;background:#8a2be2;color:#fff;border:none;border-radius:8px;font-weight:bold}
+.nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;justify-content:space-around;padding:10px 0;box-shadow:0 -2px 10px #0001}
+.nav div{text-align:center;font-size:12px;color:#888}
+.nav .active{color:#8a2be2;font-weight:bold}
+input,select{width:95%;padding:12px;margin:6px 0;border-radius:10px;border:1px solid #ddd}
+</style></head><body>
+<div id="homePage"><div class="header"><h2>TOTAL BALANCE</h2><h1>৳ <span id="bal">0</span>.00</h1><p>Total earned: ৳ <span id="bal2">0</span> | Ads: <span id="adsCount">0/10</span></p><button class="btn" style="background:#fff;color:#8a2be2;width:48%" onclick="showTab('withdraw')">Withdraw</button><button class="btn" style="background:#000;width:48%" onclick="showTab('refer')">Refer 22৳/friend</button></div><div class="card"><h3>📋 Daily Tasks <span style="float:right;color:#8a2be2" id="taskInfo">Loading...</span></h3><p>Complete tasks to earn bonus</p></div><div style="display:flex;gap:10px;margin:12px"><div class="card" style="flex:1;margin:0;text-align:center"><h3 id="refs">0</h3><p>Total Referrals</p></div><div class="card" style="flex:1;margin:0;text-align:center"><h3 id="total">0</h3><p>Total Users</p></div></div><div class="card"><h3>How to earn</h3><p>1. Watch ads - 7৳ per ad</p><p>2. Complete tasks - 10৳ each</p><p>3. Invite friends - 22৳ each</p></div></div>
+<div id="earnPage" style="display:none"><div class="header"><h2>DAILY ADS</h2><p>Today's reward 7৳ / ad</p></div><div class="card"><p>Daily Progress: <b id="adsCount2">0 / 10</b> watched</p><button class="btn" onclick="showAd()" id="adBtn">Watch Ad - 7৳</button><p id="adStatus" style="font-size:12px;color:#888;margin-top:8px;text-align:center"></p></div><div class="card"><h3>Bonus Tasks</h3><div class="task"><span>📢 Main Channel</span><button onclick="openTask('https://t.me/ProjectEarnig','main')">Join +10৳</button></div><div class="task"><span>✅ Payment Proof</span><button onclick="openTask('https://t.me/Projectpayments','payment')">Join +10৳</button></div><div class="task"><span>👍 Facebook Page</span><button onclick="openTask('https://www.facebook.com/share/19gncw1dwC/','fb')">Like +10৳</button></div><div class="task"><span>▶️ YouTube @NHMMunna</span><button onclick="openTask('https://www.youtube.com/@NHMMunna','yt')">Sub +10৳</button></div></div></div>
+<div id="referPage" style="display:none"><div class="header"><h2>Invite & Earn</h2><p>Get 22৳ for every friend</p></div><div class="card"><p id="reflink" style="word-break:break-all;background:#f5f5f5;padding:12px;border-radius:8px;font-size:13px;color:#000">Loading...</p><button class="btn" onclick="copyRef()">Copy Link</button></div></div>
+<div id="withdrawPage" style="display:none"><div class="header"><h2>AVAILABLE BALANCE ৳ <span id="bal3">0</span></h2><p>Min. withdrawal: ৳ 500.00</p></div><div class="card"><h3>Request Payout</h3><select id="method"><option>Bkash</option><option>Nagad</option><option>Rocket</option></select><input id="wallet" placeholder="01XXXXXXXXX"><input id="amount" type="number" placeholder="Min 500"><button class="btn" onclick="doWithdraw()">Request Withdraw</button></div></div>
+<div id="profilePage" style="display:none"><div class="header"><h1 id="initials">--</h1><p id="pname">Loading...</p><p id="pid"></p></div><div class="card"><p>Balance: ৳ <span id="bal4">0</span> | Refs: <span id="refs2">0</span></p></div></div>
+<div class="nav"><div onclick="showTab('home')" id="n-home" class="active">🏠<br>Home</div><div onclick="showTab('earn')" id="n-earn">📺<br>Earn</div><div onclick="showTab('refer')" id="n-refer">👥<br>Refer</div><div onclick="showTab('withdraw')" id="n-withdraw">💸<br>Withdraw</div><div onclick="showTab('profile')" id="n-profile">👤<br>Profile</div></div>
+<script>
+const tg = window.Telegram.WebApp; tg.expand();
+const user = tg.initDataUnsafe?.user;
+let uid = user?.id ? String(user.id) : (localStorage.getItem('uid') || "8630373069");
+if(user?.id) localStorage.setItem('uid', String(user.id));
+const BOT_API = "https://project-earning-bot-production.up.railway.app";
+let gigaAd = null;
+try { gigaAd = window.GigaPub.init({ appId: 8439 }); } catch(e){ console.log("Giga init fail", e); }
+function initUI(){
+let link = `https://t.me/ProjectEarningBot?start=${uid}`;
+document.getElementById('reflink').innerText = link;
+let fname = user?.first_name || "Hasan";
+let lname = user?.last_name || "";
+document.getElementById('initials').innerText = (fname[0]||'H').toUpperCase() + (lname[0]||'').toUpperCase();
+document.getElementById('pname').innerText = fname + " " + lname;
+document.getElementById('pid').innerText = "ID: " + uid;
+}
+function showTab(t){
+['home','earn','refer','withdraw','profile'].forEach(x=>document.getElementById(x+'Page').style.display='none');
+document.getElementById(t+'Page').style.display='block';
+document.querySelectorAll('.nav div').forEach(d=>d.classList.remove('active'));
+document.getElementById('n-'+t).classList.add('active');
+}
+async function loadData(){
+try{
+let r = await fetch(`${BOT_API}/api/balance?user_id=${uid}`).then(x=>x.json());
+['bal','bal2','bal3','bal4'].forEach(id=>{let e=document.getElementById(id); if(e) e.innerText = r.bal ?? 0});
+document.getElementById('refs').innerText = r.refs ?? 0;
+document.getElementById('refs2').innerText = r.refs ?? 0;
+document.getElementById('total').innerText = r.total ?? 0;
+document.getElementById('adsCount').innerText = (r.ads_today||0)+"/10";
+document.getElementById('adsCount2').innerText = (r.ads_today||0)+" / 10";
+let total = 4; let done = r.tasks ? r.tasks.length : 0;
+document.getElementById('taskInfo').innerText = (total-done) + " pending, " + done + " done";
+}catch(e){ document.getElementById('taskInfo').innerText = "4 tasks"; console.error(e); }
+}
+function copyRef(){ let txt = document.getElementById('reflink').innerText; navigator.clipboard.writeText(txt); alert("Copied: " + txt); }
+function openTask(link, type){
+window.open(link, '_blank');
+fetch(`${BOT_API}/api/task`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:uid, task:type})})
+.then(r=>r.json()).then(d=>{ if(d.ok){alert("✅ +10৳ Added!"); loadData();} else alert(d.msg); });
+}
+async function showAd(){
+const btn=document.getElementById('adBtn'); const status=document.getElementById('adStatus');
+btn.innerText="Loading Ad..."; btn.disabled=true; status.innerText="";
+try{
+if(!gigaAd) throw new Error("GigaPub Not Initialized");
+let result = await gigaAd.show();
+if(result){
+let add = await fetch(`${BOT_API}/api/add_balance`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:uid, amount:7, type:"ad"})}).then(x=>x.json());
+if(add.ok){ alert("✅ 7৳ Added!"); loadData(); } else { alert("❌ " + (add.msg || "Daily Limit Reached")); }
+} else { alert("❌ Ad পুরোটা দেখো নাই, তাই টাকা পাও নাই"); }
+}catch(e){
+console.log(e); alert("❌ Ad Not Available\nGigaPub এখনো Reviewing এ আছে। Approve হলে Ad দেখাবে।");
+status.innerText = "GigaPub Status: Reviewing - Approval Pending";
+}
+btn.innerText="Watch Ad - 7৳"; btn.disabled=false;
+}
+async function doWithdraw(){
+let m=document.getElementById('method').value, w=document.getElementById('wallet').value, a=document.getElementById('amount').value;
+if(!w||!a){ alert("Number & Amount দাও"); return; }
+if(parseInt(a) < 500){ alert("Minimum 500৳ Required"); return; }
+let res=await fetch(`${BOT_API}/api/withdraw`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:String(uid),amount:a,method:m,wallet:w})}).then(x=>x.json());
+alert(res.ok?"✅ Request Admin এর কাছে গেছে!":"❌ "+res.msg); if(res.ok) loadData();
+}
+window.addEventListener('load', ()=>{ initUI(); loadData(); });
+</script></body></html>
